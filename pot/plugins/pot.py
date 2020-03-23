@@ -24,6 +24,19 @@ class one_pot:
         self.what = what
         self.driver_idx = -1
 
+async def print_all_pot():
+    pot_str = "现在约了的锅有："
+    if len(cur_pots) == 0:
+        return pot_str + "[无]"
+    for i,pot in enumerate(cur_pots):
+        pot_str += ("\n编号:" + str(i) + " 地点:" + pot.where+ " 时间:" + pot.when + " 口味:" + pot.what + '\n乘客:')
+        for j,who in enumerate(pot.who):
+            pot_str += str(j) + '.' + who
+            if j == pot.driver_idx:
+                pot_str += "(司机)"
+            pot_str += " "
+    return pot_str
+
 cur_pots = []
 
 ### 约锅 ###
@@ -348,16 +361,3 @@ async def _():
                                      message=f'约锅时间到啦！\n'+report)
         except CQHttpError:
             pass
-
-async def print_all_pot():
-    pot_str = "现在约了的锅有："
-    if len(cur_pots) == 0:
-        return pot_str + "[无]"
-    for i,pot in enumerate(cur_pots):
-        pot_str += ("\n编号:" + str(i) + " 地点:" + pot.where+ " 时间:" + pot.when + " 口味:" + pot.what + '\n乘客:')
-        for j,who in enumerate(pot.who):
-            pot_str += str(j) + '.' + who
-            if j == pot.driver_idx:
-                pot_str += "(司机)"
-            pot_str += " "
-    return pot_str
