@@ -364,7 +364,7 @@ async def _(session: CommandSession):
 @on_command('changemian', aliases=('改面'), only_to_me=False)
 async def changemian(session: CommandSession):
     ok = session.get('ok')
-    if ok == False:
+    if type(ok)==bool and ok == False:
         err_flag = session.get('err_flag')
         if err_flag == 'pot_ind_err':
             await session.send('群友，你要尝试约出现实中不存在的锅.jpg')
@@ -430,7 +430,7 @@ async def _(session: CommandSession):
 @on_command('changefan', aliases=('改饭'), only_to_me=False)
 async def changefan(session: CommandSession):
     ok = session.get('ok')
-    if ok == False:
+    if type(ok)==bool and ok == False:
         err_flag = session.get('err_flag')
         if err_flag == 'pot_ind_err':
             await session.send('群友，你要尝试约出现实中不存在的锅.jpg')
@@ -546,14 +546,14 @@ async def potclear(session: CommandSession):
 ### 帮助 ###
 @on_command('pothelp', aliases=('怎么锅啊', '约锅助手', '约锅帮助', '约锅help'), only_to_me=False)
 async def pothelp(session: CommandSession):
-    helpstr = "约锅助手指令:\n <pothelp|怎么锅啊|约锅助手|约锅帮助|约锅help> :输出本帮助\n <pots|有锅吗> : 查看已有的锅\n <newpot|约锅> <地点> <时间> <口味> <发起人id> [面数 [饭数]] : 约一个新锅\n <join|上车|加入> <锅编号> <乘客id> [面数 [饭数]] :加入指定锅\n <driver|司机|有人点锅了> <锅编号> <乘客编号/id> :给指定锅选择一个司机,-1代表没人点\n <change|改锅> <时间|地点|口味|备注 中的一个> <新的时间|地点|口味|备注> :修改锅的属性\n <changemian|改面> <锅编号> <乘客编号/id> <面数> :修改乘客的面数\n <changefan|改饭> <锅编号> <乘客编号/id> <饭数> :修改乘客的饭数\n <comment|备注|加菜|需求> <锅编号> <内容> :附加新的备注\n <leave|下车|咕了|鸽了> <锅编号> <乘客编号/id> :放群友鸽子\n <delpot|锅没了|锅完了> <锅编号> :删除一个已有的锅\n <potclear|清空锅> :删除所有的锅\n\n PS.默认一人一面一饭"
+    helpstr = "约锅助手指令:\n <pothelp|怎么锅啊|约锅助手|约锅帮助|约锅help> :输出本帮助\n <pots|有锅吗> : 查看已有的锅\n <newpot|约锅> <地点> <时间> <口味> <发起人id> [面数 [饭数]] : 约一个新锅\n <join|上车|加入> <锅编号> <乘客id> [面数 [饭数]] :加入指定锅\n <driver|司机|有人点锅了> <锅编号> <乘客编号/id> :给指定锅选择一个司机,-1代表没人点\n <change|改锅> <锅编号> <时间|地点|口味|备注 中的一个> <新的时间|地点|口味|备注> :修改锅的属性\n <changemian|改面> <锅编号> <乘客编号/id> <面数> :修改乘客的面数\n <changefan|改饭> <锅编号> <乘客编号/id> <饭数> :修改乘客的饭数\n <comment|备注|加菜|需求> <锅编号> <内容> :附加新的备注\n <leave|下车|咕了|鸽了> <锅编号> <乘客编号/id> :放群友鸽子\n <delpot|锅没了|锅完了> <锅编号> :删除一个已有的锅\n <potclear|清空锅> :删除所有的锅\n\n PS.默认一人一面一饭"
     await session.send(helpstr)
 
 @nonebot.scheduler.scheduled_job('cron', hour='*', minute='*')
 async def _():
     bot = nonebot.get_bot()
     now = datetime.now(pytz.timezone('Asia/Shanghai'))
-    if (now.hour == 16 or now.hour == 17 or now.hour == 11) and now.minute == 35:
+    if (now.hour == 16 or now.hour == 17 or now.hour == 11) and (now.minute == 35 or now.minute == 10):
         try:
             report = await print_all_pot()
             await bot.send_group_msg(group_id=521357265,
