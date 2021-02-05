@@ -8,4 +8,8 @@ if __name__ == '__main__':
         path.join(path.dirname(__file__), 'pot', 'plugins'),
         'pot.plugins'
     )
+    # nonebot.load_plugins(
+    #     path.join(path.dirname(__file__), 'LM', 'plugins'),
+    #     'LM.plugins'
+    # )
     nonebot.run()
