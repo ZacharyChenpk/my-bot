@@ -1,15 +1,15 @@
 import nonebot
-import config
+from nonebot.adapters.mirai import WebsocketBot
+from nonebot.adapters.cqhttp import Bot as CQHTTPBot
 from os import path
 
-if __name__ == '__main__':
-    nonebot.init(config)
-    nonebot.load_plugins(
-        path.join(path.dirname(__file__), 'pot', 'plugins'),
-        'pot.plugins'
-    )
-    # nonebot.load_plugins(
-    #     path.join(path.dirname(__file__), 'LM', 'plugins'),
-    #     'LM.plugins'
-    # )
+nonebot.init()
+driver = nonebot.get_driver()
+driver.register_adapter("cqhttp", CQHTTPBot)
+nonebot.load_builtin_plugins()
+nonebot.load_plugin("pot.plugins.pot")
+
+app = nonebot.get_asgi()
+
+if __name__ == "__main__":
     nonebot.run()
