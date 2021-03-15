@@ -8,6 +8,7 @@ driver = nonebot.get_driver()
 driver.register_adapter("cqhttp", CQHTTPBot)
 nonebot.load_builtin_plugins()
 nonebot.load_plugin("pot.plugins.pot")
+nonebot.load_plugin("pot.plugins.dessert")
 
 app = nonebot.get_asgi()
 
