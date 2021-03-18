@@ -9,7 +9,7 @@ from nonebot.adapters import Bot, Event
 from nonebot.permission import Permission
 from nonebot import require
 
-scheduler = require("plugin-apscheduler-master.nonebot_plugin_apscheduler").scheduler
+# scheduler = require("plugin-apscheduler-master.nonebot_plugin_apscheduler").scheduler
 from datetime import datetime
 import os
 import pickle
@@ -75,29 +75,29 @@ async def handle_first_receive_newpot(bot: Bot, event: Event, state: T_State):
     
 @newpot.got("who", prompt="你的id是？")
 async def newpot_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
 
 @newpot.got("where", prompt="约哪儿的锅？")
 async def newpot_got_where(bot: Bot, event: Event, state: T_State):
-    if state['where'] == 'QUIT':
+    if state['where'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
 
 @newpot.got("when", prompt="什么时候？")
 async def newpot_got_when(bot: Bot, event: Event, state: T_State):
-    if state['when'] == 'QUIT':
+    if state['when'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
 
 @newpot.got("what", prompt="什么口味？")
 async def newpot_got_what(bot: Bot, event: Event, state: T_State):
-    if state['what'] == 'QUIT':
+    if state['what'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     state['pot'] = one_pot(state['who'], state['where'], state['when'], state['what'])
 
 @newpot.got("noodle", prompt="您几面？")
 async def newpot_got_noodle(bot: Bot, event: Event, state: T_State):
     noodle = state["noodle"]
-    if noodle == 'QUIT':
+    if noodle.lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if not noodle.isdigit() or int(noodle) < 0:
         await newpot.reject("？这边建议再输一遍面数呢（")
@@ -106,7 +106,7 @@ async def newpot_got_noodle(bot: Bot, event: Event, state: T_State):
 @newpot.got("rice", prompt="您几饭？")
 async def newpot_got_rice(bot: Bot, event: Event, state: T_State):
     rice = state["rice"]
-    if rice == 'QUIT':
+    if rice.lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if not rice.isdigit() or int(rice) < 0:
         await newpot.reject("？这边建议再输一遍饭数呢（")
@@ -127,7 +127,7 @@ async def handle_first_receive_delpot(bot: Bot, event: Event, state: T_State):
 @delpot.got("pot_id", prompt="扬哪个锅？来个编号")
 async def delpot_gotid(bot: Bot, event: Event, state: T_State):
     pot_id = state["pot_id"]
-    if state['pot_id'] == 'QUIT':
+    if state['pot_id'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if not pot_id.isdigit():
         await delpot.reject("？这边建议再输一遍锅编号呢（")
@@ -152,7 +152,7 @@ async def handle_first_receive_join(bot: Bot, event: Event, state: T_State):
 
 @join.got("who", prompt="你的id是？")
 async def join_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if 'which' not in state.keys():
         report = print_all_pot()
@@ -160,7 +160,7 @@ async def join_got_who(bot: Bot, event: Event, state: T_State):
 
 @join.got("which", prompt="锅编号？")
 async def join_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -172,7 +172,7 @@ async def join_got_which(bot: Bot, event: Event, state: T_State):
 
 @join.got("noodle", prompt="您几面？")
 async def join_get_noodle(bot: Bot, event: Event, state: T_State):
-    if state['noodle'] == 'QUIT':
+    if state['noodle'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     noodle = state["noodle"]
     if not noodle.isdigit() or int(noodle) < 0:
@@ -181,7 +181,7 @@ async def join_get_noodle(bot: Bot, event: Event, state: T_State):
 @join.got("rice", prompt="您几饭？")
 async def join_get_rice(bot: Bot, event: Event, state: T_State):
     rice = state["rice"]
-    if state['rice'] == 'QUIT':
+    if state['rice'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if not rice.isdigit() or int(rice) < 0:
         await newpot.reject("？这边建议再输一遍饭数呢（")
@@ -208,7 +208,7 @@ async def handle_first_receive_leave(bot: Bot, event: Event, state: T_State):
 @leave.got("which", prompt="锅编号？")
 async def leave_got_which(bot: Bot, event: Event, state: T_State):
     pot_id = state["which"]
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     if not pot_id.isdigit():
         await leave.reject("？这边建议再输一遍锅编号呢（")
@@ -219,7 +219,7 @@ async def leave_got_which(bot: Bot, event: Event, state: T_State):
 
 @leave.got("who", prompt="您的id/编号？")
 async def leave_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     who = state["who"]
     which = int(state['which'])
@@ -254,7 +254,7 @@ async def handle_first_receive_driver(bot: Bot, event: Event, state: T_State):
 
 @driver.got("which", prompt="锅编号？")
 async def driver_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -266,7 +266,7 @@ async def driver_got_which(bot: Bot, event: Event, state: T_State):
 
 @driver.got("who", prompt="司机的id/编号？")
 async def driver_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     who = state["who"]
     which = int(state['which'])
@@ -295,7 +295,7 @@ async def handle_first_receive_change(bot: Bot, event: Event, state: T_State):
 
 @change.got("which", prompt="锅编号？")
 async def change_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -307,7 +307,7 @@ async def change_got_which(bot: Bot, event: Event, state: T_State):
 
 @change.got("feature", prompt="改锅的哪个属性？在【时间】【地点】【口味】【备注】中选一个吧")
 async def change_got_feature(bot: Bot, event: Event, state: T_State):
-    if state['feature'] == 'QUIT':
+    if state['feature'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     features = ['时间', '地点', '口味', '备注']
     feature = state['feature']
@@ -316,7 +316,7 @@ async def change_got_feature(bot: Bot, event: Event, state: T_State):
 
 @change.got("what", prompt="改成啥？")
 async def change_got_what(bot: Bot, event: Event, state: T_State):
-    if state['what'] == 'QUIT':
+    if state['what'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = int(state["which"])
     feature = state['feature']
@@ -344,7 +344,7 @@ async def handle_first_receive_changemian(bot: Bot, event: Event, state: T_State
 
 @changemian.got("which", prompt="锅编号？")
 async def changemian_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -356,7 +356,7 @@ async def changemian_got_which(bot: Bot, event: Event, state: T_State):
 
 @changemian.got("who", prompt="改谁的面？输入id/编号")
 async def changemian_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     who = state["who"]
     which = int(state['which'])
@@ -371,7 +371,7 @@ async def changemian_got_who(bot: Bot, event: Event, state: T_State):
 
 @changemian.got("howmany", prompt="改多少？")
 async def changemian_got_howmany(bot: Bot, event: Event, state: T_State):
-    if state['howmany'] == 'QUIT':
+    if state['howmany'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     howmany = state["howmany"]
     which = int(state['which'])
@@ -395,7 +395,7 @@ async def handle_first_receive_changefan(bot: Bot, event: Event, state: T_State)
 
 @changefan.got("which", prompt="锅编号？")
 async def changefan_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -407,7 +407,7 @@ async def changefan_got_which(bot: Bot, event: Event, state: T_State):
 
 @changefan.got("who", prompt="改谁的饭？输入id/编号")
 async def changefan_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     who = state["who"]
     which = int(state['which'])
@@ -422,7 +422,7 @@ async def changefan_got_who(bot: Bot, event: Event, state: T_State):
 
 @changefan.got("howmany", prompt="改多少？")
 async def changefan_got_howmany(bot: Bot, event: Event, state: T_State):
-    if state['howmany'] == 'QUIT':
+    if state['howmany'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     howmany = state["howmany"]
     which = int(state['which'])
@@ -446,7 +446,7 @@ async def handle_first_receive_comment(bot: Bot, event: Event, state: T_State):
 
 @comment.got("which", prompt="锅编号？")
 async def comment_got_which(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     pot_id = state["which"]
     if not pot_id.isdigit():
@@ -458,7 +458,7 @@ async def comment_got_which(bot: Bot, event: Event, state: T_State):
 
 @comment.got("what", prompt="加什么需求？")
 async def comment_got_who(bot: Bot, event: Event, state: T_State):
-    if state['what'] == 'QUIT':
+    if state['what'].lower() == 'quit':
         await newpot.finish('溜了溜了.jpg')
     what = state["what"]
     which = int(state['which'])
@@ -488,5 +488,11 @@ async def handle_first_receive_potclear(bot: Bot, event: Event, state: T_State):
 pothelp = on_command("怎么锅啊", permission=Permission(), priority=1)
 @pothelp.handle()
 async def handle_first_receive_pothelp(bot: Bot, event: Event, state: T_State):
-    helpstr = "约锅助手指令:\n /怎么锅啊 : 输出本帮助\n /有锅吗 : 查看已有的锅\n /约锅 <地点> <时间> <口味> <发起人id> <面数> <饭数> : 约一个新锅\n /上车 <乘客id> <锅编号> <面数> <饭数> : 加入指定锅\n /有人点锅了 <锅编号> <司机id/编号> : 给指定锅选择一个司机,-1代表没人点\n /改锅 <锅编号> <[时间|地点|口味|备注] 中的一个> <新的[时间|地点|口味|备注]> : 修改锅的属性\n /改面 <锅编号> <乘客编号/id> <面数> : 修改乘客的面数\n /改饭 <锅编号> <乘客编号/id> <饭数> : 修改乘客的饭数\n /加需求 <锅编号> <内容> : 附加新的备注\n /咕了 <锅编号> <乘客编号/id> : 放群友鸽子\n /锅没了 <锅编号> : 删除一个已有的锅\n /清空锅 : 删除所有的锅\nQUIT : 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
+    helpstr = "约锅助手指令:\n /怎么锅啊 : 输出本帮助\n /有锅吗 : 查看已有的锅\n /约锅 <发起人id> <地点> <时间> <口味> <面数> <饭数> : 约一个新锅\n /上车 <乘客id> <锅编号> <面数> <饭数> : 加入指定锅\n /有人点锅了 <锅编号> <司机id/编号> : 给指定锅选择一个司机,-1代表没人点\n /改锅 <锅编号> <[时间|地点|口味|备注] 中的一个> <新的[时间|地点|口味|备注]> : 修改锅的属性\n /改面 <锅编号> <乘客编号/id> <面数> : 修改乘客的面数\n /改饭 <锅编号> <乘客编号/id> <饭数> : 修改乘客的饭数\n /加需求 <锅编号> <内容> : 附加新的备注\n /咕了 <锅编号> <乘客编号/id> : 放群友鸽子\n /锅没了 <锅编号> : 删除一个已有的锅\n /清空锅 : 删除所有的锅\n QUIT 或 quit : 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
     await pothelp.finish(helpstr)
+
+thehelp = on_command("help", permission=Permission(), priority=1)
+@thehelp.handle()
+async def handle_first_receive_thehelp(bot: Bot, event: Event, state: T_State):
+    helpstr = "/help : 输出本帮助\n /怎么锅啊 : 约锅帮助\n /甜品 : 甜品车帮助"
+    await thehelp.finish(helpstr)

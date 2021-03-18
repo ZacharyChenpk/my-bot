@@ -46,10 +46,10 @@ class dessert_menu:
 
     def __str__(self):
         ret = self.name + '\n'
-        for it in self.item_list:
-            ret = ret + str(it) + '\n'
+        for i, it in enumerate(self.item_list):
+            ret = ret + str(i+1) + '. ' + str(it) + '\n'
         if len(self.item_list) == 0:
-            ret = '[无选项]\n'
+            ret = ret + '[无选项]\n'
         return ret
 
 menus = []
@@ -65,14 +65,26 @@ def print_all_menus():
     return menus_str
 
 def find_menu_by_name(name):
+    if name.isdigit():
+        ind = int(name) - 1
+        if ind < 0 or ind >= len(menus):
+            return False
+        return ind, menus[ind]
+
     for ind, i in enumerate(menus):
         if i.name == name:
             return ind, i
     return False
 
 def find_dessert_by_name(name, menu):
+    if name.isdigit():
+        ind = int(name) - 1
+        if ind < 0 or ind >= len(menu.item_list):
+            return False
+        return ind, menu.item_list[ind]
+
     for ind, i in enumerate(menu.item_list):
-        if i.name == name:
+        if len(name) <= len(i.name) and i.name[:len(name)] == name:
             return ind, i
     return False
 
@@ -147,7 +159,7 @@ class dessert_truck:
         the_bucket.note = note
 
     def __str__(self):
-        ret = '司机: '+self.driver + ' 菜单:'+ self.menu_name + ' 预计送达时间:' + self.time + '\n'
+        ret = '司机:'+self.driver + ' 菜单:'+ self.menu_name + ' 预计送达时间:' + self.time + ' 总价:'+ str(sum([b.total_price() for b in self.bucket_list])) + '\n'
         for i, b in enumerate(self.bucket_list):
             ret += str(i+1)+'. '+str(b)
         return ret
@@ -161,7 +173,15 @@ def print_all_trucks():
     if len(trucks) == 0:
         return truck_str + "[无]"
     for i, truck in enumerate(trucks):
-        truck_str += str(i+1)+'. 司机:'+truck.driver + ' 菜单:'+ truck.menu_name + ' 预计送达时间:' + truck.time + '\n'
+        truck_str += str(i+1)+'. 司机:'+truck.driver + ' 菜单:'+ truck.menu_name + ' 预计送达时间:' + truck.time + ' 总价:'+ str(sum([b.total_price() for b in truck.bucket_list], 0)) + '\n'
+        total_bucket = {}
+        for b in truck.bucket_list:
+            for name, n in b.picked.items():
+                if name not in total_bucket:
+                    total_bucket[name] = 0
+                total_bucket[name] += n
+        for name, n in total_bucket.items():
+            truck_str += '  '+name+' * '+str(n)+'\n'
     return truck_str
 
 if os.path.exists('cur_menus_dump'):
@@ -180,7 +200,7 @@ async def handle_first_receive_new_menu(bot: Bot, event: Event, state: T_State):
 
 @new_menu.got("menu_name", prompt="菜单名？比如，这是哪里的甜点？")
 async def new_menu_got_who(bot: Bot, event: Event, state: T_State):
-    if state['menu_name'] == 'QUIT':
+    if state['menu_name'].lower() == 'quit':
         await new_menu.finish('溜了溜了.jpg')
     names = [a.name for a in menus]
     if state['menu_name'] in names:
@@ -198,7 +218,7 @@ async def handle_first_receive_new_item(bot: Bot, event: Event, state: T_State):
 
 @new_item.got("whichmenu", prompt="哪个菜单？")
 async def new_item_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['whichmenu'] == 'QUIT':
+    if state['whichmenu'].lower() == 'quit':
         await new_item.finish('溜了溜了.jpg')
     state['menu'] = find_menu_by_name(state['whichmenu'])
     if not state['menu']:
@@ -206,12 +226,12 @@ async def new_item_got_whichmenu(bot: Bot, event: Event, state: T_State):
 
 @new_item.got("name", prompt="新甜品叫啥？")
 async def new_item_got_name(bot: Bot, event: Event, state: T_State):
-    if state['name'] == 'QUIT':
+    if state['name'].lower() == 'quit':
         await new_item.finish('溜了溜了.jpg')
 
 @new_item.got("price", prompt="单价？")
 async def new_item_got_price(bot: Bot, event: Event, state: T_State):
-    if state['price'] == 'QUIT':
+    if state['price'].lower() == 'quit':
         await new_item.finish('溜了溜了.jpg')
     try:
         a = float(state['price'])
@@ -232,7 +252,7 @@ async def handle_first_receive_del_item(bot: Bot, event: Event, state: T_State):
 
 @del_item.got("whichmenu", prompt="哪个菜单？")
 async def del_item_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['whichmenu'] == 'QUIT':
+    if state['whichmenu'].lower() == 'quit':
         await del_item.finish('溜了溜了.jpg')
     state['menu'] = find_menu_by_name(state['whichmenu'])
     if not state['menu']:
@@ -240,7 +260,7 @@ async def del_item_got_whichmenu(bot: Bot, event: Event, state: T_State):
 
 @del_item.got("name", prompt="哪个甜品？")
 async def del_item_got_name(bot: Bot, event: Event, state: T_State):
-    if state['name'] == 'QUIT':
+    if state['name'].lower() == 'quit':
         await del_item.finish('溜了溜了.jpg')
     a = find_dessert_by_name(state['name'], state['menu'][1])
     if not a:
@@ -265,7 +285,7 @@ async def handle_first_receive_del_menu(bot: Bot, event: Event, state: T_State):
 
 @del_menu.got("whichmenu", prompt="菜单名？")
 async def del_menu_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['whichmenu'] == 'QUIT':
+    if state['whichmenu'].lower() == 'quit':
         await del_menu.finish('溜了溜了.jpg')
     ret = find_menu_by_name(state['whichmenu'])
     if not ret:
@@ -288,7 +308,7 @@ async def handle_first_receive_new_truck(bot: Bot, event: Event, state: T_State)
 
 @new_truck.got("whichmenu", prompt="哪个菜单？")
 async def new_truck_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['whichmenu'] == 'QUIT':
+    if state['whichmenu'].lower() == 'quit':
         await new_truck.finish('溜了溜了.jpg')
     state['menu'] = find_menu_by_name(state['whichmenu'])
     if not state['menu']:
@@ -296,12 +316,12 @@ async def new_truck_got_whichmenu(bot: Bot, event: Event, state: T_State):
 
 @new_truck.got("who", prompt="谁开车？")
 async def new_truck_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await new_truck.finish('溜了溜了.jpg')
 
 @new_truck.got("time", prompt="大概什么时候到？")
 async def new_truck_got_time(bot: Bot, event: Event, state: T_State):
-    if state['time'] == 'QUIT':
+    if state['time'].lower() == 'quit':
         await new_truck.finish('溜了溜了.jpg')
     trucks.append(dessert_truck(state['whichmenu'], state['who'], state['time']))
     await new_truck.finish('开车成功！\n'+print_all_trucks())
@@ -316,14 +336,14 @@ async def handle_first_receive_timechange(bot: Bot, event: Event, state: T_State
 
 @timechange.got("which", prompt="哪个车？")
 async def timechange_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await timechange.finish('溜了溜了.jpg')
     if not state['which'].isdigit() or int(state['which']) < 1 or int(state['which']) > len(trucks):
         await timechange.reject("车的编号不太对吧？再输入一次吧")
 
 @timechange.got("time", prompt="谁开的？")
 async def timechange_got_who(bot: Bot, event: Event, state: T_State):
-    if state['time'] == 'QUIT':
+    if state['time'].lower() == 'quit':
         await timechange.finish('溜了溜了.jpg')
     which = int(state['which'])-1
     trucks[which].time = state['time']
@@ -339,14 +359,14 @@ async def handle_first_receive_del_truck(bot: Bot, event: Event, state: T_State)
 
 @del_truck.got("which", prompt="哪个车？")
 async def del_truck_got_whichmenu(bot: Bot, event: Event, state: T_State):
-    if state['which'] == 'QUIT':
+    if state['which'].lower() == 'quit':
         await del_truck.finish('溜了溜了.jpg')
     if not state['which'].isdigit() or int(state['which']) < 1 or int(state['which']) > len(trucks):
         await del_truck.reject("车的编号不太对吧？再输入一次吧")
 
 @del_truck.got("who", prompt="谁开的？")
 async def del_truck_got_who(bot: Bot, event: Event, state: T_State):
-    if state['who'] == 'QUIT':
+    if state['who'].lower() == 'quit':
         await del_truck.finish('溜了溜了.jpg')
     which = int(state['which'])-1
     if state['who'] != trucks[which].driver:
@@ -364,7 +384,7 @@ async def handle_first_receive_change_item(bot: Bot, event: Event, state: T_Stat
 
 @change_item.got("whichtruck", prompt="车编号？")
 async def change_item_got_whichtruck(bot: Bot, event: Event, state: T_State):
-    if state['whichtruck'] == 'QUIT':
+    if state['whichtruck'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
     if not state['whichtruck'].isdigit() or int(state['whichtruck']) < 1 or int(state['whichtruck']) > len(trucks):
         await change_item.reject("车的编号不太对吧？再输入一次吧")
@@ -372,23 +392,27 @@ async def change_item_got_whichtruck(bot: Bot, event: Event, state: T_State):
 
 @change_item.got("name", prompt="你的名字？")
 async def change_item_got_name(bot: Bot, event: Event, state: T_State):
-    if state['name'] == 'QUIT':
+    if state['name'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
+    if 'dessert' not in state.keys():
+        the_menu = str(find_menu_by_name(state['truck'].menu_name)[1])
+        await change_item.send(the_menu)
 
-@change_item.got("dessert", prompt="甜品名字？")
+@change_item.got("dessert", prompt="甜品名字/编号？")
 async def change_item_got_dessert(bot: Bot, event: Event, state: T_State):
-    if state['dessert'] == 'QUIT':
+    if state['dessert'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
-    if not find_dessert_by_name(state['dessert'], find_menu_by_name(state['truck'].menu_name)[1]):
+    state['dessert_item'] = find_dessert_by_name(state['dessert'], find_menu_by_name(state['truck'].menu_name)[1])
+    if not state['dessert_item']:
         await change_item.reject("真的有这个甜品吗？再输一次罢")
 
 @change_item.got("howmany", prompt="多少份？（可以是0）")
 async def change_item_got_dessert(bot: Bot, event: Event, state: T_State):
-    if state['howmany'] == 'QUIT':
+    if state['howmany'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
     if not state['howmany'].isdigit() or int(state['howmany']) < 0:
         await change_item.reject("？多少份？")
-    ret = state['truck'].change_item(state['name'], state['dessert'], int(state['howmany']))
+    ret = state['truck'].change_item(state['name'], state['dessert_item'][1].name, int(state['howmany']))
     if not ret:
         await change_item.reject("真的有这个甜品吗？重新输入命令罢")
     with open('cur_trucks_dump', 'wb') as f:
@@ -405,7 +429,7 @@ async def handle_first_receive_change_note(bot: Bot, event: Event, state: T_Stat
 
 @change_note.got("whichtruck", prompt="车编号？")
 async def change_note_got_whichtruck(bot: Bot, event: Event, state: T_State):
-    if state['whichtruck'] == 'QUIT':
+    if state['whichtruck'].lower() == 'quit':
         await change_note.finish('溜了溜了.jpg')
     if not state['whichtruck'].isdigit() or int(state['whichtruck']) < 1 or int(state['whichtruck']) > len(trucks):
         await change_note.reject("车的编号不太对吧？再输入一次吧")
@@ -413,7 +437,7 @@ async def change_note_got_whichtruck(bot: Bot, event: Event, state: T_State):
 
 @change_note.got("name", prompt="你的名字？")
 async def change_note_got_name(bot: Bot, event: Event, state: T_State):
-    if state['name'] == 'QUIT':
+    if state['name'].lower() == 'quit':
         await change_note.finish('溜了溜了.jpg')
     flag = False
     for ind, i in enumerate(state['truck'].bucket_list):
@@ -425,7 +449,7 @@ async def change_note_got_name(bot: Bot, event: Event, state: T_State):
 
 @change_note.got("note", prompt="新的备注？")
 async def change_note_got_note(bot: Bot, event: Event, state: T_State):
-    if state['note'] == 'QUIT':
+    if state['note'].lower() == 'quit':
         await change_note.finish('溜了溜了.jpg')
     state['truck'].change_note(state['name'], state['note'])
     with open('cur_trucks_dump', 'wb') as f:
@@ -454,7 +478,7 @@ async def handle_first_receive_menu_see(bot: Bot, event: Event, state: T_State):
 
 @menu_see.got("whichmenu", prompt="菜单名？")
 async def menu_see_got_who(bot: Bot, event: Event, state: T_State):
-    if state['whichmenu'] == 'QUIT':
+    if state['whichmenu'].lower() == 'quit':
         await menu_see.finish('溜了溜了.jpg')
     ret = find_menu_by_name(state['whichmenu'])
     if not ret:
@@ -471,7 +495,7 @@ async def handle_first_receive_truck_see(bot: Bot, event: Event, state: T_State)
 
 @truck_see.got("whichtruck", prompt="车编号？")
 async def truck_see_got_whichtruck(bot: Bot, event: Event, state: T_State):
-    if state['whichtruck'] == 'QUIT':
+    if state['whichtruck'].lower() == 'quit':
         await truck_see.finish('溜了溜了.jpg')
     if not state['whichtruck'].isdigit() or int(state['whichtruck']) < 1 or int(state['whichtruck']) > len(trucks):
         await truck_see.reject("车的编号不太对吧？再输入一次吧")
@@ -480,5 +504,5 @@ async def truck_see_got_whichtruck(bot: Bot, event: Event, state: T_State):
 dessert_help = on_command("甜品", permission=Permission(), priority=1)
 @dessert_help.handle()
 async def handle_first_receive_dessert_help(bot: Bot, event: Event, state: T_State):
-    helpstr = "甜品助手指令:\n /甜品 : 输出本帮助\n /新增甜品菜单 <菜单名>\n /新增甜品 <菜单名> <甜品名> <单价> : 为指定菜单增加甜品\n /删除甜品 <菜单名> <甜品名> : 为指定菜单删除甜品\n /删除甜品菜单 <菜单名> : 删除一个没有对应甜品车的菜单\n /开甜品车 <菜单名> <司机名> <抵达时间地点> : 根据给定菜单开一个甜品车\n /改时间 <车编号> <抵达时间地点> : 修改甜品车的抵达时间/地点\n /取消甜品车 <车编号> <司机名> : 取消一个甜品车 \n /上甜品车 <车编号> <你的ID> <甜品名> <数量> : 修改对应车中你点的该甜品数量（从无到有则新增，设为0则删除）\n /修改甜品备注 <车编号> <你的ID> <新备注> : 在对应车中修改你的备注\n /查看菜单列表 : 看看有哪些菜单\n /查看菜单 <菜单名> : 查看对应菜单的详细内容\n /有甜品吗 : 看看有哪些车\n /查看甜品车 <车编号> : 查看对应车的详细内容\n QUIT: 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
+    helpstr = "甜品助手指令:\n /甜品 : 输出本帮助\n /新增甜品菜单 <菜单名>\n /新增甜品 <菜单名/编号> <甜品名> <单价> : 为指定菜单增加甜品\n /删除甜品 <菜单名/编号> <甜品名/编号> : 为指定菜单删除甜品\n /删除甜品菜单 <菜单名/编号> : 删除一个没有对应甜品车的菜单\n /开甜品车 <菜单名/编号> <司机名> <抵达时间地点> : 根据给定菜单开一个甜品车\n /改时间 <车编号> <抵达时间地点> : 修改甜品车的抵达时间/地点\n /取消甜品车 <车编号> <司机名> : 取消一个甜品车 \n /上甜品车 <车编号> <你的ID> <甜品名/编号> <数量> : 修改对应车中你点的该甜品数量（从无到有则新增，设为0则删除）\n /修改甜品备注 <车编号> <你的ID> <新备注> : 在对应车中修改你的备注\n /查看菜单列表 : 看看有哪些菜单\n /查看菜单 <菜单名/编号> : 查看对应菜单的详细内容\n /有甜品吗 : 看看有哪些车\n /查看甜品车 <车编号> : 查看对应车的详细内容\n QUIT 或 quit: 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
     await dessert_help.finish(helpstr)
