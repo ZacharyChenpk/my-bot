@@ -86,6 +86,14 @@ def find_dessert_by_name(name, menu):
     for ind, i in enumerate(menu.item_list):
         if len(name) <= len(i.name) and i.name[:len(name)] == name:
             return ind, i
+
+    l = []
+    for ind, i in enumerate(menu.item_list):
+        if len(name) <= len(i.name) and i.name.find(name) > 0:
+            l.append((ind, i))
+    if len(l) == 1:
+        return l[0]
+
     return False
 
 class dessert_bucket:
@@ -98,6 +106,7 @@ class dessert_bucket:
 
     def change_item(self, dessert_name, howmany):
         the_menu = find_menu_by_name(self.menu_name)[1]
+        print(dessert_name)
         d = find_dessert_by_name(dessert_name, the_menu)
         if not d:
             return False
@@ -106,7 +115,7 @@ class dessert_bucket:
             if dessert_name in self.picked:
                 del self.picked[dessert_name]
             return True
-        self.picked[dessert_name] = int(howmany)
+        self.picked[dessert_name] = howmany
         return True
 
     def total_price(self):
@@ -378,9 +387,26 @@ change_item = on_command("上甜品车", permission=Permission(), priority=5)
 @change_item.handle()
 async def handle_first_receive_change_item(bot: Bot, event: Event, state: T_State):
     args = str(event.get_message()).strip().split()
-    keys = ['whichtruck', 'name', 'dessert', 'howmany']
-    for a,b in zip(args, keys):
-        state[b] = a
+    # keys = ['whichtruck', 'name', 'dessert', 'howmany']
+    if len(args) > 0:
+        state['whichtruck'] = args[0]
+    if len(args) > 1:
+        state['name'] = args[1]
+    if len(args) > 2:
+        state['dessert'] = args[2:-1]
+    if len(args) > 3:
+        n = False
+        try:
+            n = float(args[-1])
+        except:
+            pass
+        if n:
+            state['howmany'] = args[-1]
+        else:
+            state['dessert'].append(args[-1])
+            state['howmany'] = '1'
+    # for a,b in zip(args, keys):
+    #     state[b] = a
 
 @change_item.got("whichtruck", prompt="车编号？")
 async def change_item_got_whichtruck(bot: Bot, event: Event, state: T_State):
@@ -400,21 +426,32 @@ async def change_item_got_name(bot: Bot, event: Event, state: T_State):
 
 @change_item.got("dessert", prompt="甜品名字/编号？")
 async def change_item_got_dessert(bot: Bot, event: Event, state: T_State):
-    if state['dessert'].lower() == 'quit':
+    if isinstance(state['dessert'], str) and state['dessert'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
-    state['dessert_item'] = find_dessert_by_name(state['dessert'], find_menu_by_name(state['truck'].menu_name)[1])
-    if not state['dessert_item']:
-        await change_item.reject("真的有这个甜品吗？再输一次罢")
+    if isinstance(state['dessert'], str):
+        state['dessert'] = state['dessert'].strip().split()
+    # state['dessert_item'] = find_dessert_by_name(state['dessert'], find_menu_by_name(state['truck'].menu_name)[1])
+    state['dessert_item'] = [find_dessert_by_name(d, find_menu_by_name(state['truck'].menu_name)[1]) for d in state['dessert']]
+    # if not state['dessert_item']:
+    if False in state['dessert_item']:
+        idx = state['dessert_item'].index(False)
+        await change_item.reject(state['dessert'][idx]+"？真的有这个甜品吗？再输一次罢")
 
 @change_item.got("howmany", prompt="多少份？（可以是0）")
 async def change_item_got_dessert(bot: Bot, event: Event, state: T_State):
     if state['howmany'].lower() == 'quit':
         await change_item.finish('溜了溜了.jpg')
-    if not state['howmany'].isdigit() or int(state['howmany']) < 0:
+    n = False
+    try:
+        n = float(state['howmany'])
+    except:
+        pass
+    if not n or n < 0:
         await change_item.reject("？多少份？")
-    ret = state['truck'].change_item(state['name'], state['dessert_item'][1].name, int(state['howmany']))
-    if not ret:
-        await change_item.reject("真的有这个甜品吗？重新输入命令罢")
+    ret = [state['truck'].change_item(state['name'], d[1].name, n) for d in state['dessert_item']]
+    if False in ret:
+        idx = ret.index(False)
+        await change_item.reject(state['dessert_item'][idx][1].name+"？真的有这个甜品吗？重新输入命令罢")
     with open('cur_trucks_dump', 'wb') as f:
         pickle.dump(trucks, f)
     await change_item.finish('修改成功！该车：\n'+str(state['truck']))
@@ -504,5 +541,5 @@ async def truck_see_got_whichtruck(bot: Bot, event: Event, state: T_State):
 dessert_help = on_command("甜品", permission=Permission(), priority=1)
 @dessert_help.handle()
 async def handle_first_receive_dessert_help(bot: Bot, event: Event, state: T_State):
-    helpstr = "甜品助手指令:\n /甜品 : 输出本帮助\n /新增甜品菜单 <菜单名>\n /新增甜品 <菜单名/编号> <甜品名> <单价> : 为指定菜单增加甜品\n /删除甜品 <菜单名/编号> <甜品名/编号> : 为指定菜单删除甜品\n /删除甜品菜单 <菜单名/编号> : 删除一个没有对应甜品车的菜单\n /开甜品车 <菜单名/编号> <司机名> <抵达时间地点> : 根据给定菜单开一个甜品车\n /改时间 <车编号> <抵达时间地点> : 修改甜品车的抵达时间/地点\n /取消甜品车 <车编号> <司机名> : 取消一个甜品车 \n /上甜品车 <车编号> <你的ID> <甜品名/编号> <数量> : 修改对应车中你点的该甜品数量（从无到有则新增，设为0则删除）\n /修改甜品备注 <车编号> <你的ID> <新备注> : 在对应车中修改你的备注\n /查看菜单列表 : 看看有哪些菜单\n /查看菜单 <菜单名/编号> : 查看对应菜单的详细内容\n /有甜品吗 : 看看有哪些车\n /查看甜品车 <车编号> : 查看对应车的详细内容\n QUIT 或 quit: 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
+    helpstr = "甜品助手指令:\n /甜品 : 输出本帮助\n /新增甜品菜单 <菜单名>\n /新增甜品 <菜单名/编号> <甜品名> <单价> : 为指定菜单增加甜品\n /删除甜品 <菜单名/编号> <甜品名/编号> : 为指定菜单删除甜品\n /删除甜品菜单 <菜单名/编号> : 删除一个没有对应甜品车的菜单\n /开甜品车 <菜单名/编号> <司机名> <抵达时间地点> : 根据给定菜单开一个甜品车\n /改时间 <车编号> <抵达时间地点> : 修改甜品车的抵达时间/地点\n /取消甜品车 <车编号> <司机名> : 取消一个甜品车 \n /上甜品车 <车编号> <你的ID> <甜品名/编号> <数量> : 修改对应车中你点的该甜品数量（从无到有则新增，设为0则删除，多个以空格连接）\n /修改甜品备注 <车编号> <你的ID> <新备注> : 在对应车中修改你的备注\n /查看菜单列表 : 看看有哪些菜单\n /查看菜单 <菜单名/编号> : 查看对应菜单的详细内容\n /有甜品吗 : 看看有哪些车\n /查看甜品车 <车编号> : 查看对应车的详细内容\n QUIT 或 quit: 结束当前命令（不然会被追问）\n以上所有参数可以分多次输入"
     await dessert_help.finish(helpstr)
